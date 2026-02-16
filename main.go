@@ -48,15 +48,15 @@ func runInteractive() {
 }
 
 func run(line string) {
-	// scanner := NewScanner(line)
-	// tokens := scanner.ScanTokens()
-	//
-	// for _, token := range tokens {
-	// 	fmt.Printf("%s %s\n", token.Type, token.Literal)
-	// }
+	scanner := NewScanner(line)
+	tokens := scanner.ScanTokens()
+
+	for _, token := range tokens {
+		fmt.Printf("%s %s\n", token.Type, token.Literal)
+	}
 }
 
-func error(line int, message string) {
+func Error(line int, message string) {
 	fmt.Printf("Error: %s [line %d]\n", message, line)
 	hadError = true
 }
