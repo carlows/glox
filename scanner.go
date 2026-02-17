@@ -13,6 +13,25 @@ type Scanner struct {
 	line    int
 }
 
+var keywords = map[string]TokenType {
+	"and": And,
+	"class": Class,
+	"else": Else,
+	"false": False,
+	"fun": Fun,
+	"for": For,
+	"if": If,
+	"nil": Nil,
+	"or": Or,
+	"print": Print,
+	"return": Return,
+	"super": Super,
+	"this": This,
+	"true": True,
+	"var": Var,
+	"while": While,
+}
+
 func NewScanner(source string) *Scanner {
 	return &Scanner{
 		source:  source,
@@ -123,13 +142,12 @@ func (s *Scanner) number() {
 	if s.peek() == '.' && s.isDigit(s.peekNext()) {
 		s.advance()
 
-		for s.isDigit(s.peek()) && !s.isAtEnd() {
+		for s.isDigit(s.peek()) {
 			s.advance()
 		}
 	}
 
-	s.advance()
-	decimal := s.source[s.start : s.current-1]
+	decimal := s.source[s.start : s.current]
 
 	conversion, err := strconv.ParseFloat(decimal, 64)
 	if err != nil {
@@ -142,6 +160,11 @@ func (s *Scanner) number() {
 func (s *Scanner) identifier() {
 	for s.isAlphaNumeric(s.peek()) {
 		s.advance()
+	}
+
+	if keyword, ok := keywords[s.source[s.start:s.current]]; ok {
+		s.addToken(keyword)
+		return
 	}
 
 	s.addToken(Identifier)
@@ -224,3 +247,4 @@ func (s *Scanner) addTokenWithLiteral(tokenType TokenType, literal any) {
 
 	s.tokens = append(s.tokens, token)
 }
+
