@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Scanner struct {
 	source  string
@@ -60,16 +63,118 @@ func (s *Scanner) scanToken() {
 	case '*':
 		s.addToken(Star)
 	case '!':
-		if s.match('=') { s.addToken(BangEqual) } else { s.addToken(Bang) }
+		if s.match('=') {
+			s.addToken(BangEqual)
+		} else {
+			s.addToken(Bang)
+		}
 	case '=':
-		if s.match('=') { s.addToken(EqualEqual) } else { s.addToken(Equal) }
+		if s.match('=') {
+			s.addToken(EqualEqual)
+		} else {
+			s.addToken(Equal)
+		}
 	case '>':
-		if s.match('=') { s.addToken(GreaterEqual) } else { s.addToken(Greater) }
+		if s.match('=') {
+			s.addToken(GreaterEqual)
+		} else {
+			s.addToken(Greater)
+		}
 	case '<':
-		if s.match('=') { s.addToken(LessEqual) } else { s.addToken(Less) }
+		if s.match('=') {
+			s.addToken(LessEqual)
+		} else {
+			s.addToken(Less)
+		}
+	case '/':
+		// Keeps consuming until we reach the new line character
+		// because we reached a comment, such as this current one :)
+		if s.match('/') {
+			for s.peek() != '\n' && !s.isAtEnd() {
+				s.advance()
+			}
+		} else {
+			s.addToken(Slash)
+		}
+	case '"':
+		s.string()
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		s.number()
+	case ' ', '\t', '\r':
+		// Ignore whitespace
+	case '\n':
+		s.line++
 	default:
-		Error(s.line, fmt.Sprintf("Unexpected character: %s", string(char)))
+		if s.isAlpha(char) {
+			s.identifier()
+		} else {
+			Error(s.line, fmt.Sprintf("Unexpected character: %s", string(char)))
+		}
 	}
+}
+
+func (s *Scanner) number() {
+	for s.isDigit(s.peek()) {
+		s.advance()
+	}
+
+	// Important: we don't want to consume the dot unless it's actually a decimal
+	// Because you might otherwise not be able to support 123.abs()
+	if s.peek() == '.' && s.isDigit(s.peekNext()) {
+		s.advance()
+
+		for s.isDigit(s.peek()) && !s.isAtEnd() {
+			s.advance()
+		}
+	}
+
+	s.advance()
+	decimal := s.source[s.start : s.current-1]
+
+	conversion, err := strconv.ParseFloat(decimal, 64)
+	if err != nil {
+		Error(s.line, fmt.Sprintf("Invalid number: %s", decimal))
+	}
+
+	s.addTokenWithLiteral(Number, conversion)
+}
+
+func (s *Scanner) identifier() {
+	for s.isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+
+	s.addToken(Identifier)
+}
+
+func (s *Scanner) isAlpha(char byte) bool {
+	return (char >= 'a' && char <= 'z') ||
+		(char >= 'A' && char <= 'Z') ||
+		char == '_'
+}
+
+func (s *Scanner) isAlphaNumeric(char byte) bool {
+	return s.isAlpha(char) || s.isDigit(char)
+}
+
+func (s *Scanner) isDigit(char byte) bool {
+	return char >= '0' && char <= '9'
+}
+
+func (s *Scanner) string() {
+	for s.peek() != '"' && !s.isAtEnd() {
+		if s.peek() == '\n' {
+			s.line++
+		}
+		s.advance()
+	}
+
+	if s.isAtEnd() {
+		Error(s.line, "Unterminated string")
+	}
+
+	s.advance()
+	s.addTokenWithLiteral(String, s.source[s.start+1:s.current-1])
 }
 
 func (s *Scanner) match(char byte) bool {
@@ -84,9 +189,25 @@ func (s *Scanner) match(char byte) bool {
 	return true
 }
 
+// "Consumes" the current character and returns it
 func (s *Scanner) advance() byte {
 	s.current++
 	return s.source[s.current-1]
+}
+
+// Does not "consume" the current character and returns it
+func (s *Scanner) peek() byte {
+	if s.isAtEnd() {
+		return '\x00'
+	}
+	return s.source[s.current]
+}
+
+func (s *Scanner) peekNext() byte {
+	if s.current+1 >= len(s.source) {
+		return '\x00'
+	}
+	return s.source[s.current+1]
 }
 
 func (s *Scanner) addToken(tokenType TokenType) {
