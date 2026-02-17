@@ -70,6 +70,55 @@ func TestScanTokens(t *testing.T) {
 				{Type: Eof, Lexeme: "", Literal: nil, Line: 1},
 			},
 		},
+		{
+			name:  "Strings - single line",
+			input: `"Hello World"`,
+			expected: []Token{
+				{Type: String, Lexeme: `"Hello World"`, Literal: "Hello World", Line: 1},
+				{Type: Eof, Lexeme: "", Literal: nil, Line: 1},
+			},
+		},
+		{
+			name: "Strings - multiple lines",
+			input: `"Hello
+World"`,
+			expected: []Token{
+				{Type: String, Lexeme: "\"Hello\nWorld\"", Literal: "Hello\nWorld", Line: 2},
+				{Type: Eof, Lexeme: "", Literal: nil, Line: 2},
+			},
+		},
+		{
+			name:  "Operators - bang",
+			input: `!`,
+			expected: []Token{
+				{Type: Bang, Lexeme: "!", Literal: nil, Line: 1},
+				{Type: Eof, Lexeme: "", Literal: nil, Line: 1},
+			},
+		},
+		{
+			name:  "Operators - bang equal",
+			input: `!=`,
+			expected: []Token{
+				{Type: BangEqual, Lexeme: "!=", Literal: nil, Line: 1},
+				{Type: Eof, Lexeme: "", Literal: nil, Line: 1},
+			},
+		},
+		{
+			name:  "Reserved keywords - class",
+			input: `class`,
+			expected: []Token{
+				{Type: Class, Lexeme: "class", Literal: nil, Line: 1},
+				{Type: Eof, Lexeme: "", Literal: nil, Line: 1},
+			},
+		},
+		{
+			name: "Identifiers - word",
+			input: `hello`,
+			expected: []Token{
+				{Type: Identifier, Lexeme: "hello", Literal: nil, Line: 1},
+				{Type: Eof, Lexeme: "", Literal: nil, Line: 1},
+			},
+		},
 	}
 
 	for _, tt := range tests {
