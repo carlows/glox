@@ -1,4 +1,4 @@
-package main
+package scanner
 
 import (
 	"fmt"
@@ -6,39 +6,41 @@ import (
 )
 
 type Scanner struct {
-	source  string
-	tokens  []Token
-	start   int
-	current int
-	line    int
+	source       string
+	tokens       []Token
+	start        int
+	current      int
+	line         int
+	errorHandler func(line int, message string)
 }
 
-var keywords = map[string]TokenType {
-	"and": And,
-	"class": Class,
-	"else": Else,
-	"false": False,
-	"fun": Fun,
-	"for": For,
-	"if": If,
-	"nil": Nil,
-	"or": Or,
-	"print": Print,
+var keywords = map[string]TokenType{
+	"and":    And,
+	"class":  Class,
+	"else":   Else,
+	"false":  False,
+	"fun":    Fun,
+	"for":    For,
+	"if":     If,
+	"nil":    Nil,
+	"or":     Or,
+	"print":  Print,
 	"return": Return,
-	"super": Super,
-	"this": This,
-	"true": True,
-	"var": Var,
-	"while": While,
+	"super":  Super,
+	"this":   This,
+	"true":   True,
+	"var":    Var,
+	"while":  While,
 }
 
-func NewScanner(source string) *Scanner {
+func NewScanner(source string, errorHandler func(line int, message string)) *Scanner {
 	return &Scanner{
-		source:  source,
-		tokens:  make([]Token, 0),
-		start:   0,
-		current: 0,
-		line:    1,
+		source:       source,
+		tokens:       make([]Token, 0),
+		start:        0,
+		current:      0,
+		line:         1,
+		errorHandler: errorHandler,
 	}
 }
 
@@ -127,7 +129,7 @@ func (s *Scanner) scanToken() {
 		if s.isAlpha(char) {
 			s.identifier()
 		} else {
-			Error(s.line, fmt.Sprintf("Unexpected character: %s", string(char)))
+			s.errorHandler(s.line, fmt.Sprintf("Unexpected character: %s", string(char)))
 		}
 	}
 }
@@ -147,11 +149,11 @@ func (s *Scanner) number() {
 		}
 	}
 
-	decimal := s.source[s.start : s.current]
+	decimal := s.source[s.start:s.current]
 
 	conversion, err := strconv.ParseFloat(decimal, 64)
 	if err != nil {
-		Error(s.line, fmt.Sprintf("Invalid number: %s", decimal))
+		s.errorHandler(s.line, fmt.Sprintf("Invalid number: %s", decimal))
 	}
 
 	s.addTokenWithLiteral(Number, conversion)
@@ -193,7 +195,7 @@ func (s *Scanner) string() {
 	}
 
 	if s.isAtEnd() {
-		Error(s.line, "Unterminated string")
+		s.errorHandler(s.line, "Unterminated string")
 	}
 
 	s.advance()
@@ -247,4 +249,3 @@ func (s *Scanner) addTokenWithLiteral(tokenType TokenType, literal any) {
 
 	s.tokens = append(s.tokens, token)
 }
-

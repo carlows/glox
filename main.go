@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"glox/scanner"
 )
 
 var hadError bool = false
@@ -34,22 +36,22 @@ func runFile(filename string) {
 }
 
 func runInteractive() {
-	scanner := bufio.NewScanner(os.Stdin)
+	sc := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("> ")
-		if !scanner.Scan() {
+		if !sc.Scan() {
 			break
 		}
 
-		line := scanner.Text()
+		line := sc.Text()
 		run(line)
 		hadError = false
 	}
 }
 
 func run(line string) {
-	scanner := NewScanner(line)
-	tokens := scanner.ScanTokens()
+	s := scanner.NewScanner(line, Error)
+	tokens := s.ScanTokens()
 
 	for _, token := range tokens {
 		fmt.Printf("%s %s\n", token.Type, token.Literal)

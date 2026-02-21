@@ -1,4 +1,4 @@
-package main
+package scanner
 
 import (
 	"reflect"
@@ -112,7 +112,7 @@ World"`,
 			},
 		},
 		{
-			name: "Identifiers - word",
+			name:  "Identifiers - word",
 			input: `hello`,
 			expected: []Token{
 				{Type: Identifier, Lexeme: "hello", Literal: nil, Line: 1},
@@ -123,7 +123,9 @@ World"`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scanner := NewScanner(tt.input)
+			scanner := NewScanner(tt.input, func(line int, message string) {
+				t.Errorf("Error at line %d: %s", line, message)
+			})
 			tokens := scanner.ScanTokens()
 
 			if len(tokens) != len(tt.expected) {
