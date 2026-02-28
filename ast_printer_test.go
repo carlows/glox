@@ -9,12 +9,22 @@ import (
 func TestAstPrinter(t *testing.T) {
 	expression := expr.Binary{
 		Left: &expr.Unary{
-			Op: scanner.Minus,
+			Op: scanner.Token{
+				Type:    scanner.Minus,
+				Lexeme:  "-",
+				Literal: nil,
+				Line:    0,
+			},
 			Expr: &expr.Literal{
 				Value: 123,
 			},
 		},
-		Op: scanner.Star,
+		Op: scanner.Token{
+			Type:    scanner.Star,
+			Lexeme:  "*",
+			Literal: nil,
+			Line:    0,
+		},
 		Right: &expr.Grouping{
 			Expr: &expr.Literal{
 				Value: 45.67,

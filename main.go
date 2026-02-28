@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"glox/parser"
 	"glox/scanner"
 )
 
@@ -53,12 +54,23 @@ func run(line string) {
 	s := scanner.NewScanner(line, Error)
 	tokens := s.ScanTokens()
 
-	for _, token := range tokens {
-		fmt.Printf("%s %s\n", token.Type, token.Literal)
+	p := parser.NewParser(tokens, ErrorAtToken)
+	expr := p.Parse()
+
+	if hadError {
+		return
 	}
+
+	printer := AstPrinter{}
+	fmt.Println(printer.Print(expr))
 }
 
 func Error(line int, message string) {
 	fmt.Printf("Error: %s [line %d]\n", message, line)
+	hadError = true
+}
+
+func ErrorAtToken(token scanner.Token, message string) {
+	fmt.Printf("Error: %s [line %d] lexeme: %s\n", message, token.Line, token.Lexeme)
 	hadError = true
 }

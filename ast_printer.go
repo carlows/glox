@@ -13,7 +13,7 @@ func (p *AstPrinter) Print(expr expr.Expr) string {
 }
 
 func (p *AstPrinter) VisitBinary(expr *expr.Binary) any {
-	return p.parenthesize(expr.Op.String(), expr.Left, expr.Right)
+	return p.parenthesize(expr.Op.Type.String(), expr.Left, expr.Right)
 }
 
 func (p *AstPrinter) VisitGrouping(expr *expr.Grouping) any {
@@ -28,7 +28,7 @@ func (p *AstPrinter) VisitLiteral(expr *expr.Literal) any {
 }
 
 func (p *AstPrinter) VisitUnary(expr *expr.Unary) any {
-	return p.parenthesize(expr.Op.String(), expr.Expr)
+	return p.parenthesize(expr.Op.Type.String(), expr.Expr)
 }
 
 func (p *AstPrinter) parenthesize(name string, exprs ...expr.Expr) string {

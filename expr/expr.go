@@ -8,7 +8,7 @@ type Expr interface {
 
 type Binary struct {
 	Left Expr
-	Op   scanner.TokenType
+	Op   scanner.Token
 	Right Expr
 }
 
@@ -33,7 +33,7 @@ func (l *Literal) Accept(v Visitor) any {
 }
 
 type Unary struct {
-	Op scanner.TokenType
+	Op scanner.Token
 	Expr Expr
 }
 
