@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"glox/interpreter"
 	"glox/parser"
 	"glox/scanner"
 )
@@ -61,8 +62,8 @@ func run(line string) {
 		return
 	}
 
-	printer := AstPrinter{}
-	fmt.Println(printer.Print(expr))
+	i := interpreter.NewInterpreter(ErrorAtToken)
+	i.Interpret(expr)
 }
 
 func Error(line int, message string) {
